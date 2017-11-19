@@ -1,0 +1,4 @@
+.pioenvs
+.piolibdeps
+.clang_complete
+.vscode/c_cpp_properties.json
