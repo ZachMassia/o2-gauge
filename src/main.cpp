@@ -10,32 +10,24 @@
 #define LCD_W 16
 #define LCD_H 2
 
+#define O2_SENSOR_PIN A0
+
+#define AFR_SLOPE 2
+#define AFR_INTERCEPT 10
+#define LAMBDA_SLOPE 0.136
+#define LAMBDA_INTERCEPT 0.68
+
+enum OutputType { AFRType, LambdaType };
+
 // Globals --
 ThreadController controller;
 Thread lcdThread;
 LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
 
-float AFR = 0.0;
+float afr = 0.0;
 float lambda = 0.0;
 
-// Function forward declarations --
-void initLCD();
-void updateLCD();
-
-void setup() {
-  Serial.begin(115200);
-  initLCD();
-
-  lcdThread.onRun(updateLCD);
-  lcdThread.setInterval(LCD_UPDATE_TIME_MS);
-  controller.add(&lcdThread);
-}
-
-void loop() { controller.run(); }
-
-// Functions --
-
-void initLCD() {
+void initlcd() {
   lcd.begin(LCD_W, LCD_H);
   lcd.home();
   lcd.print(F("AFR:"));
@@ -43,18 +35,42 @@ void initLCD() {
   lcd.print(F("Lambda:"));
 }
 
-void updateLCD() {
+void updatelcd() {
   lcd.setCursor(9, 0);
   lcd.print(F("      "));
   lcd.setCursor(9, 0);
-  lcd.print(AFR);
+  lcd.print(afr);
 
   lcd.setCursor(9, 1);
   lcd.print(F("      "));
   lcd.setCursor(9, 1);
   lcd.print(lambda);
+}
 
-  if (1 != 0) {
-    lcd.home();
+float convertOutput(int val, OutputType t) {
+  switch (t) {
+  case OutputType::AFRType:
+    return (val * AFR_SLOPE) + AFR_INTERCEPT;
+  case OutputType::LambdaType:
+    return (val * LAMBDA_SLOPE) + LAMBDA_INTERCEPT;
+  default:
+    return 0.0;
   }
+}
+
+void setup() {
+  Serial.begin(115200);
+  initlcd();
+
+  lcdThread.onRun(updatelcd);
+  lcdThread.setInterval(LCD_UPDATE_TIME_MS);
+  controller.add(&lcdThread);
+}
+
+void loop() {
+  controller.run();
+
+  int reading = analogRead(O2_SENSOR_PIN);
+  afr = convertOutput(reading, OutputType::AFRType);
+  lambda = convertOutput(reading, OutputType::LambdaType);
 }
