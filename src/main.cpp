@@ -47,7 +47,7 @@ void updatelcd() {
   lcd.print(lambda);
 }
 
-float convertOutput(int val, OutputType t) {
+float convertOutput(float val, OutputType t) {
   switch (t) {
   case OutputType::AFRType:
     return (val * AFR_SLOPE) + AFR_INTERCEPT;
@@ -71,6 +71,7 @@ void loop() {
   controller.run();
 
   int reading = analogRead(O2_SENSOR_PIN);
-  afr = convertOutput(reading, OutputType::AFRType);
-  lambda = convertOutput(reading, OutputType::LambdaType);
+  float voltage = reading * (5.0 / 1023.0);
+  afr = convertOutput(voltage, OutputType::AFRType);
+  lambda = convertOutput(voltage, OutputType::LambdaType);
 }
