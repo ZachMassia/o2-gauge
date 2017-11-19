@@ -5,7 +5,6 @@
 #include <Thread.h>
 #include <ThreadController.h>
 
-
 // Constants --
 #define LCD_UPDATE_TIME_MS 250
 #define LCD_W 16
@@ -23,39 +22,39 @@ float lambda = 0.0;
 void initLCD();
 void updateLCD();
 
+void setup() {
+  Serial.begin(115200);
+  initLCD();
 
-void setup() { // -------------------------------------------------------------
-    Serial.begin(115200);
-    initLCD();
-    
-    lcdThread.onRun(updateLCD);
-    lcdThread.setInterval(LCD_UPDATE_TIME_MS);
-    controller.add(&lcdThread);
+  lcdThread.onRun(updateLCD);
+  lcdThread.setInterval(LCD_UPDATE_TIME_MS);
+  controller.add(&lcdThread);
 }
 
-void loop() { // --------------------------------------------------------------
-    controller.run();
-}
-
+void loop() { controller.run(); }
 
 // Functions --
 
 void initLCD() {
-    lcd.begin(LCD_W, LCD_H);
-    lcd.home();
-    lcd.print(F("AFR:"));
-    lcd.setCursor(0, 1);
-    lcd.print(F("Lambda:"));
+  lcd.begin(LCD_W, LCD_H);
+  lcd.home();
+  lcd.print(F("AFR:"));
+  lcd.setCursor(0, 1);
+  lcd.print(F("Lambda:"));
 }
 
 void updateLCD() {
-    lcd.setCursor(9, 0);
-    lcd.print(F("      "));
-    lcd.setCursor(9, 0);
-    lcd.print(AFR);
-    
-    lcd.setCursor(9, 1);
-    lcd.print(F("      "));
-    lcd.setCursor(9, 1);
-    lcd.print(lambda);
+  lcd.setCursor(9, 0);
+  lcd.print(F("      "));
+  lcd.setCursor(9, 0);
+  lcd.print(AFR);
+
+  lcd.setCursor(9, 1);
+  lcd.print(F("      "));
+  lcd.setCursor(9, 1);
+  lcd.print(lambda);
+
+  if (1 != 0) {
+    lcd.home();
+  }
 }
