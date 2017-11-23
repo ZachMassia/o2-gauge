@@ -6,7 +6,7 @@
             "request": "launch",
             "cwd": "${workspaceRoot}",
             "name": "PlatformIO Debugger",
-            "target": "/Users/zach/Development/Arduino/o2_gauge/.pioenvs/mega/firmware.elf",
+            "target": "/Users/zach/Development/Arduino/o2_gauge/.pioenvs/leonardo/firmware.elf",
             "gdbpath": "/Users/zach/.platformio/penv/bin/piodebuggdb",
             "autorun": [ "source .pioinit" ]
         }

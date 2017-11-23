@@ -1,14 +1,13 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include <LiquidCrystal.h>
+#include <TKLCD.h>
 #include <Thread.h>
 #include <ThreadController.h>
 
 // Constants --
+#define STARTUP_MSG_TIME_MS 1325
 #define LCD_UPDATE_TIME_MS 250
-#define LCD_W 16
-#define LCD_H 2
 
 #define O2_SENSOR_PIN A0
 
@@ -22,28 +21,45 @@ enum OutputType { AFRType, LambdaType };
 // Globals --
 ThreadController controller;
 Thread lcdThread;
-LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+TKLCD_Local lcd = TKLCD_Local();
 
+float voltage = 0.0;
 float afr = 0.0;
 float lambda = 0.0;
 
+// ----------------------------------------------------------------------------
+
 void initlcd() {
-  lcd.begin(LCD_W, LCD_H);
-  lcd.home();
-  lcd.print(F("AFR:"));
+  // Configure the LCD
+  lcd.begin();
+  lcd.clear();
+
+  // Display startup message
+  lcd.print(F("    O2 GAUGE    "));
   lcd.setCursor(0, 1);
-  lcd.print(F("Lambda:"));
+  lcd.print(F("   BOOTING...   "));
+  delay(STARTUP_MSG_TIME_MS);
+  lcd.clear();
+
+  // Print one-time headers
+  lcd.print(F("AFR"));
+  lcd.setCursor(0, 1);
+  lcd.print(F("Lambda"));
+  lcd.setCursor(15, 0);
+  lcd.print(F("V"));
 }
 
 void updatelcd() {
-  lcd.setCursor(9, 0);
-  lcd.print(F("      "));
-  lcd.setCursor(9, 0);
+  // Update AFR
+  lcd.setCursor(4, 0);
   lcd.print(afr);
 
-  lcd.setCursor(9, 1);
-  lcd.print(F("      "));
-  lcd.setCursor(9, 1);
+  // Update Voltage
+  lcd.setCursor(11, 0);
+  lcd.print(voltage);
+
+  // Update lambda
+  lcd.setCursor(7, 1);
   lcd.print(lambda);
 }
 
@@ -58,8 +74,10 @@ float convertOutput(float val, OutputType t) {
   }
 }
 
+// ----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
+
   initlcd();
 
   lcdThread.onRun(updatelcd);
@@ -67,11 +85,11 @@ void setup() {
   controller.add(&lcdThread);
 }
 
+// ----------------------------------------------------------------------------
 void loop() {
   controller.run();
 
-  int reading = analogRead(O2_SENSOR_PIN);
-  float voltage = reading * (5.0 / 1023.0);
+  voltage = analogRead(O2_SENSOR_PIN) * (5.0 / 1023.0);
   afr = convertOutput(voltage, OutputType::AFRType);
   lambda = convertOutput(voltage, OutputType::LambdaType);
 }
